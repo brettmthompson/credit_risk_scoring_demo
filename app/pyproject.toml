@@ -1,0 +1,13 @@
+[project]
+name = "credit-risk-ensemble"
+version = "0.1.0"
+description = "Streamlit app for credit risk ensemble prediction using MLServer"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    {name = "Brett Thompson"}
+]
+dependencies = [
+    "streamlit>=1.32.0",
+    "requests>=2.31.0",
+]
