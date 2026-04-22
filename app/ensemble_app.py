@@ -1,8 +1,17 @@
 import streamlit as st
 import requests
-import json
 import os
+import urllib3
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Suppress SSL warnings for demo purposes (using verify=False)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Encoding mappings (must match training notebook)
+HOME_OWNERSHIP_MAP = {"RENT": 0, "OWN": 1, "MORTGAGE": 2, "OTHER": 3}
+LOAN_INTENT_MAP = {"EDUCATION": 0, "MEDICAL": 1, "VENTURE": 2, "PERSONAL": 3, "DEBTCONSOLIDATION": 4, "HOMEIMPROVEMENT": 5}
+LOAN_GRADE_MAP = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "F": 5, "G": 6}
+DEFAULT_MAP = {"Y": 1, "N": 0}
 
 st.set_page_config(
     page_title="Credit Risk Ensemble Predictor",
@@ -90,24 +99,18 @@ with col3:
     cb_person_default_on_file = st.selectbox("Previous Default on File", ["Y", "N"])
     cb_person_cred_hist_length = st.slider("Credit History Length (years)", 0, 50, 10, help="Years of credit history")
 
-# Encode categorical features (same as training)
-home_ownership_map = {"RENT": 0, "OWN": 1, "MORTGAGE": 2, "OTHER": 3}
-loan_intent_map = {"EDUCATION": 0, "MEDICAL": 1, "VENTURE": 2, "PERSONAL": 3, "DEBTCONSOLIDATION": 4, "HOMEIMPROVEMENT": 5}
-loan_grade_map = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "F": 5, "G": 6}
-default_map = {"Y": 1, "N": 0}
-
 # Prepare feature vector (order must match training)
 features = [
     person_age,
     person_income,
-    home_ownership_map[person_home_ownership],
+    HOME_OWNERSHIP_MAP[person_home_ownership],
     person_emp_length,
-    loan_intent_map[loan_intent],
-    loan_grade_map[loan_grade],
+    LOAN_INTENT_MAP[loan_intent],
+    LOAN_GRADE_MAP[loan_grade],
     loan_amnt,
     loan_int_rate,
     loan_percent_income,
-    default_map[cb_person_default_on_file],
+    DEFAULT_MAP[cb_person_default_on_file],
     cb_person_cred_hist_length
 ]
 
@@ -121,6 +124,11 @@ st.divider()
 
 # Prediction button
 if st.button("🔮 Predict Default Risk", type="primary", use_container_width=True):
+    # Validate configuration before making requests
+    if not all([xgb_endpoint, lgb_endpoint, sklearn_endpoint, xgb_model, lgb_model, sklearn_model]):
+        st.error("⚠️ Please configure all model endpoints and names in the sidebar")
+        st.stop()
+
     with st.spinner("Calling model endpoints..."):
         try:
             # MLServer V2 inference protocol format
@@ -139,32 +147,33 @@ if st.button("🔮 Predict Default Risk", type="primary", use_container_width=Tr
             errors = []
 
             # Define inference function for parallel execution
-            def call_model(name, endpoint, model_name):
+            def call_model(endpoint, model_name):
                 try:
                     response = requests.post(
                         f"{endpoint}/v2/models/{model_name}/infer",
                         json=inference_request,
-                        verify=False,  # Skip SSL verification for self-signed certs
+                        verify=False,  # Skip SSL verification for demo purposes
                         timeout=5
                     )
                     response.raise_for_status()
                     # Handle different formats: sklearn=[P(class0), P(class1)], others=[P(class1)]
                     # Take last element to get positive class probability in both cases
                     probability = response.json()["outputs"][0]["data"][-1]
-                    return name, probability, None
+                    return probability, None
                 except Exception as e:
-                    return name, None, str(e)
+                    return None, str(e)
 
             # Call all models in parallel
             with ThreadPoolExecutor(max_workers=3) as executor:
                 futures = {
-                    executor.submit(call_model, "XGBoost", xgb_endpoint, xgb_model): "XGBoost",
-                    executor.submit(call_model, "LightGBM", lgb_endpoint, lgb_model): "LightGBM",
-                    executor.submit(call_model, "Sklearn", sklearn_endpoint, sklearn_model): "Sklearn"
+                    executor.submit(call_model, xgb_endpoint, xgb_model): "XGBoost",
+                    executor.submit(call_model, lgb_endpoint, lgb_model): "LightGBM",
+                    executor.submit(call_model, sklearn_endpoint, sklearn_model): "Sklearn"
                 }
 
                 for future in as_completed(futures):
-                    name, result, error = future.result()
+                    name = futures[future]
+                    result, error = future.result()
                     if error:
                         errors.append(f"{name}: {error}")
                     else:
@@ -188,9 +197,8 @@ if st.button("🔮 Predict Default Risk", type="primary", use_container_width=Tr
                 for idx, (model_name, prob) in enumerate(ordered_results):
                     with cols[idx]:
                         st.metric(
-                            label=f"{model_name}",
-                            value=f"{prob:.1%}",
-                            delta=None
+                            label=model_name,
+                            value=f"{prob:.1%}"
                         )
                         if prob > decision_threshold:
                             st.error("🔴 High Risk")
@@ -199,15 +207,14 @@ if st.button("🔮 Predict Default Risk", type="primary", use_container_width=Tr
 
                 # Ensemble prediction (average)
                 st.divider()
-                ensemble_prob = sum(results.values()) / len(results)
+                ensemble_prob = sum(prob for _, prob in ordered_results) / len(ordered_results)
 
                 col1, col2, col3 = st.columns([1, 2, 1])
                 with col2:
                     st.subheader("🎯 Ensemble Prediction")
                     st.metric(
                         label="Default Probability",
-                        value=f"{ensemble_prob:.1%}",
-                        delta=None
+                        value=f"{ensemble_prob:.1%}"
                     )
 
                     if ensemble_prob > decision_threshold:
@@ -226,7 +233,7 @@ if st.button("🔮 Predict Default Risk", type="primary", use_container_width=Tr
                 st.divider()
                 st.subheader("Model Agreement")
 
-                predictions = [1 if p > decision_threshold else 0 for p in results.values()]
+                predictions = [1 if prob > decision_threshold else 0 for _, prob in ordered_results]
                 agreement = sum(predictions)
 
                 if agreement == 0:

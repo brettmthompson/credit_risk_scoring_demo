@@ -2,6 +2,10 @@
 
 Interactive Streamlit application for predicting loan default risk using an ensemble of three machine learning models deployed via MLServer.
 
+**Note:** This is Step 9 of the deployment workflow. Complete Steps 1-8 in the [main README](../README.md) before running this application.
+
+**Security Notice:** For simplicity, this demo application disables SSL certificate verification and does not require authentication tokens. This configuration is for demonstration purposes only.
+
 ## Features
 
 - **Interactive UI**: Sliders and inputs for all 11 credit risk features
@@ -13,14 +17,14 @@ Interactive Streamlit application for predicting loan default risk using an ense
 
 ## Prerequisites
 
-1. **Trained models deployed** on OpenShift AI as InferenceServices:
-   - `xgboost-predictor`
-   - `lightgbm-predictor`
-   - `sklearn-predictor`
+1. **Trained models deployed** on OpenShift AI as InferenceServices (from Step 8 of deployment workflow):
+   - XGBoost InferenceService with external route enabled
+   - LightGBM InferenceService with external route enabled
+   - Sklearn InferenceService with external route enabled
 
-2. **Model endpoints accessible** from where you run the app
+2. **Model endpoints accessible** from where you run the app (routes must be externally accessible)
 
-3. **Python 3.9+** installed
+3. **Python 3.10+** installed
 
 ## Installation
 
@@ -48,40 +52,36 @@ streamlit run ensemble_app.py
 
 ## Configuration
 
-### UI Configuration (Recommended)
+### Configuration
 
-The app provides editable configuration in the sidebar:
+All model endpoints and names are configured through the Streamlit UI sidebar - no code changes needed!
 
+**UI Configuration:**
 1. **Start the app**: `uv run streamlit run ensemble_app.py`
 2. **Open sidebar**: Click the `>` icon in the top-left
-3. **Configure endpoints**: Edit the endpoint URLs for each model
-4. **Configure model names**: Edit the model names to match your MLServer configuration
+3. **Configure endpoints**: Enter the external route URLs from your deployed InferenceServices (Step 8)
+4. **Configure model names**: Enter the names of your InferenceServices from Step 8
 
-All settings are editable directly in the browser - no code changes needed!
+**Environment Variables (Optional - for convenience):**
 
-### Environment Variables (Optional)
-
-You can also set defaults via environment variables:
+To avoid re-entering URLs every time you restart the app, set environment variables to pre-populate the UI fields:
 
 ```bash
-# Model endpoints
-export XGBOOST_ENDPOINT="https://xgboost-predictor-namespace.apps.your-cluster.com"
-export LIGHTGBM_ENDPOINT="https://lightgbm-predictor-namespace.apps.your-cluster.com"
-export SKLEARN_ENDPOINT="https://sklearn-predictor-namespace.apps.your-cluster.com"
+export XGBOOST_ENDPOINT="<your-xgboost-inferenceservice-route>"
+export LIGHTGBM_ENDPOINT="<your-lightgbm-inferenceservice-route>"
+export SKLEARN_ENDPOINT="<your-sklearn-inferenceservice-route>"
 
-# Model names
-export XGBOOST_MODEL_NAME="xgboost"
-export LIGHTGBM_MODEL_NAME="lightgbm"
-export SKLEARN_MODEL_NAME="sklearn"
+export XGBOOST_MODEL_NAME="<your-xgboost-model-name>"
+export LIGHTGBM_MODEL_NAME="<your-lightgbm-model-name>"
+export SKLEARN_MODEL_NAME="<your-sklearn-model-name>"
 
 uv run streamlit run ensemble_app.py
 ```
 
 **Note:** 
-- Endpoints can use HTTP or HTTPS (SSL verification is disabled for self-signed certificates)
-- Model names should match the `name` field in your MLServer model configuration
-- UI values override environment variables
-- No authentication tokens required
+- Endpoints can use HTTP or HTTPS (SSL verification is disabled for demo purposes)
+- You can still edit values in the UI even when environment variables are set
+- No authentication tokens required (demo configuration from Step 8)
 
 ## Usage
 
@@ -109,7 +109,7 @@ uv run streamlit run ensemble_app.py
 
 **Connection errors?**
 - Verify model endpoints are accessible
-- Check InferenceServices are running: `kubectl get inferenceservices`
+- Check InferenceServices are running: `oc get inferenceservices`
 - Ensure network connectivity to cluster
 
 **Wrong predictions?**
@@ -120,7 +120,8 @@ uv run streamlit run ensemble_app.py
 
 **Models not found?**
 - Confirm models are deployed at the specified endpoints
-- Check model names match (`xgboost`, `lightgbm`, `sklearn`)
+- Check model names match your InferenceService names from Step 8
+- Verify external routes are enabled on all three InferenceServices
 
 ## Architecture
 
@@ -152,12 +153,3 @@ uv run streamlit run ensemble_app.py
          │Display │
          └────────┘
 ```
-
-## Next Steps
-
-- Adjust decision threshold based on business costs (already configurable via slider)
-- Add weighted ensemble (different model weights instead of simple average)
-- Implement voting ensemble (majority vote option)
-- Add confidence intervals or uncertainty quantification
-- Log predictions for monitoring and model drift detection
-- Add model performance metrics display

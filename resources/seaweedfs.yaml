@@ -1,0 +1,135 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: seaweedfs-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  volumeMode: Filesystem
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: seaweedfs-secret
+stringData:
+  # change the username and password to your own values.
+  accesskey: s3admin
+  secretkey: s3admin123
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: seaweedfs
+  labels:
+    app: seaweedfs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: seaweedfs
+  strategy:
+    type: Recreate
+  progressDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        app: seaweedfs
+    spec:
+      containers:
+      - args:
+        - mini
+        - -dir=/data
+        - -s3
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: seaweedfs-secret
+              key: accesskey
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: seaweedfs-secret
+              key: secretkey
+        image: quay.io/flysangel/chrislusf/seaweedfs@sha256:a27e9c432f1dfaafb5bb3f5b39065c0df7a15423a3894025c714b3f06f998aeb
+        imagePullPolicy: Always
+        name: seaweedfs
+        readinessProbe:
+          tcpSocket:
+            port: 8333
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+          periodSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        livenessProbe:
+          tcpSocket:
+            port: 8333
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+          periodSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        ports:
+        - containerPort: 8333
+          name: s3
+          protocol: TCP
+        - containerPort: 23646
+          name: admin-ui
+          protocol: TCP
+        - containerPort: 9333
+          name: master-ui
+          protocol: TCP
+        - containerPort: 8888
+          name: filer-ui
+          protocol: TCP
+        - containerPort: 9340
+          name: volume
+          protocol: TCP
+        volumeMounts:
+          - mountPath: /data
+            name: data
+        resources:
+          limits:
+            cpu: 250m
+            memory: 1Gi
+          requests:
+            cpu: 20m
+            memory: 100Mi
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: seaweedfs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: seaweedfs-service
+spec:
+  ports:
+  - name: s3
+    port: 8333
+    protocol: TCP
+    targetPort: 8333
+  - name: filer
+    port: 8888
+    protocol: TCP
+    targetPort: 8888
+  - name: master
+    port: 9333
+    protocol: TCP
+    targetPort: 9333
+  - name: volume
+    port: 9340
+    protocol: TCP
+    targetPort: 9340
+  - name: admin
+    port: 23646
+    protocol: TCP
+    targetPort: 23646
+  selector:
+    app: seaweedfs
