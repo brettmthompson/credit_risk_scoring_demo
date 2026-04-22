@@ -41,7 +41,7 @@
             "label": "data-preperation",
             "ui_data": {
               "label": "data-preperation",
-              "image": "/notebook/mlserver-demo/mlserver-demo/static/elyra/notebook.svg",
+              "image": "/notebook/credit-risk-training/static/elyra/notebook.svg",
               "x_pos": 227,
               "y_pos": 313,
               "description": "Run notebook file"
@@ -129,7 +129,7 @@
             "label": "train-xgboost",
             "ui_data": {
               "label": "train-xgboost",
-              "image": "/notebook/mlserver-demo/mlserver-demo/static/elyra/notebook.svg",
+              "image": "/notebook/credit-risk-training/static/elyra/notebook.svg",
               "x_pos": 499,
               "y_pos": 247,
               "description": "Run notebook file"
@@ -224,7 +224,7 @@
             "label": "train-lightgbm",
             "ui_data": {
               "label": "train-lightgbm",
-              "image": "/notebook/mlserver-demo/mlserver-demo/static/elyra/notebook.svg",
+              "image": "/notebook/credit-risk-training/static/elyra/notebook.svg",
               "x_pos": 498,
               "y_pos": 312,
               "description": "Run notebook file"
@@ -313,13 +313,13 @@
               "cpu": 1,
               "cpu_limit": 1,
               "memory": 1,
-              "memory_limit": 0,
+              "memory_limit": 3,
               "gpu": 0
             },
             "label": "train-sklearn",
             "ui_data": {
               "label": "train-sklearn",
-              "image": "/notebook/mlserver-demo/mlserver-demo/static/elyra/notebook.svg",
+              "image": "/notebook/credit-risk-training/static/elyra/notebook.svg",
               "x_pos": 499,
               "y_pos": 375,
               "description": "Run notebook file"
@@ -369,7 +369,7 @@
         "version": 8,
         "runtime_type": "KUBEFLOW_PIPELINES",
         "properties": {
-          "name": "mlserver-demo",
+          "name": "credit-risk-training",
           "runtime": "Pipelines",
           "pipeline_defaults": {
             "kubernetes_shared_mem_size": {},

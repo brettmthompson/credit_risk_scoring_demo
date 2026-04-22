@@ -110,7 +110,7 @@ Open your workbench and clone this repository
 ### Step 7: Run Training Pipeline
 Submit and run the Data Science Pipeline:
 1. Navigate to the `pipelines/` directory in your workbench
-2. Open the `mlserver-demo.pipeline` file
+2. Open the `credit-risk-training.pipeline` file
 3. Click "Run Pipeline" to submit it to the pipeline server
 4. Monitor pipeline execution in the Pipelines UI
 
