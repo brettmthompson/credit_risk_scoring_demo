@@ -91,23 +91,28 @@
               "kubernetes_secrets": [
                 {
                   "env_var": "AWS_S3_ENDPOINT",
-                  "name": "minio-models",
+                  "name": "seaweedfs-models",
                   "key": "AWS_S3_ENDPOINT"
                 },
                 {
                   "env_var": "AWS_ACCESS_KEY_ID",
-                  "name": "minio-models",
+                  "name": "seaweedfs-models",
                   "key": "AWS_ACCESS_KEY_ID"
                 },
                 {
                   "env_var": "AWS_SECRET_ACCESS_KEY",
-                  "name": "minio-models",
+                  "name": "seaweedfs-models",
                   "key": "AWS_SECRET_ACCESS_KEY"
                 },
                 {
                   "env_var": "AWS_S3_BUCKET",
-                  "name": "minio-models",
+                  "name": "seaweedfs-models",
                   "key": "AWS_S3_BUCKET"
+                },
+                {
+                  "env_var": "AWS_DEFAULT_REGION",
+                  "name": "seaweedfs-models",
+                  "key": "AWS_DEFAULT_REGION"
                 }
               ],
               "kubernetes_shared_mem_size": {},
@@ -181,23 +186,28 @@
               "kubernetes_secrets": [
                 {
                   "env_var": "AWS_S3_ENDPOINT",
-                  "name": "minio-models",
+                  "name": "seaweedfs-models",
                   "key": "AWS_S3_ENDPOINT"
                 },
                 {
                   "env_var": "AWS_ACCESS_KEY_ID",
-                  "name": "minio-models",
+                  "name": "seaweedfs-models",
                   "key": "AWS_ACCESS_KEY_ID"
                 },
                 {
                   "env_var": "AWS_SECRET_ACCESS_KEY",
-                  "name": "minio-models",
+                  "name": "seaweedfs-models",
                   "key": "AWS_SECRET_ACCESS_KEY"
                 },
                 {
                   "env_var": "AWS_S3_BUCKET",
-                  "name": "minio-models",
+                  "name": "seaweedfs-models",
                   "key": "AWS_S3_BUCKET"
+                },
+                {
+                  "env_var": "AWS_DEFAULT_REGION",
+                  "name": "seaweedfs-models",
+                  "key": "AWS_DEFAULT_REGION"
                 }
               ],
               "kubernetes_shared_mem_size": {},
@@ -271,23 +281,28 @@
               "kubernetes_secrets": [
                 {
                   "env_var": "AWS_S3_ENDPOINT",
-                  "name": "minio-models",
+                  "name": "seaweedfs-models",
                   "key": "AWS_S3_ENDPOINT"
                 },
                 {
                   "env_var": "AWS_ACCESS_KEY_ID",
-                  "name": "minio-models",
+                  "name": "seaweedfs-models",
                   "key": "AWS_ACCESS_KEY_ID"
                 },
                 {
                   "env_var": "AWS_SECRET_ACCESS_KEY",
-                  "name": "minio-models",
+                  "name": "seaweedfs-models",
                   "key": "AWS_SECRET_ACCESS_KEY"
                 },
                 {
                   "env_var": "AWS_S3_BUCKET",
-                  "name": "minio-models",
+                  "name": "seaweedfs-models",
                   "key": "AWS_S3_BUCKET"
+                },
+                {
+                  "env_var": "AWS_DEFAULT_REGION",
+                  "name": "seaweedfs-models",
+                  "key": "AWS_DEFAULT_REGION"
                 }
               ],
               "kubernetes_shared_mem_size": {},
